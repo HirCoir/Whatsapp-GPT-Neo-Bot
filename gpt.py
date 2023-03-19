@@ -1,28 +1,22 @@
-import sys
-from transformers import GPTNeoForCausalLM, GPT2Tokenizer
+#sistema operativo base
+FROM debian:11
 
-#tokenizer = GPT2Tokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
-#model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")
+# Actualiza el sistema operativo
+RUN apt-get update
+# Instala las dependencias necesarias para la ejecución de GPT-Neo
+RUN apt-get install -y curl sudo python3 python3-pip git chromium
+RUN curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+RUN apt install -y nodejs
+# Copia el script de Python a la imagen Docker
+WORKDIR /app
+COPY gpt.py ./
+COPY index.js ./
 
-tokenizer = GPT2Tokenizer.from_pretrained("EleutherAI/gpt-neo-1.3B")
-model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-1.3B")
+# Descarga el modelo de GPT-Neo desde Python y copia los archivos a la imagen Docker
+RUN pip3 install transformers
+# Define el directorio de trabajo
 
-if len(sys.argv) < 2:
-    print("Usage: python3 gpt.py <prompt>")
-    exit(1)
-
-prompt = sys.argv[1]
-input_ids = tokenizer.encode(prompt, return_tensors='pt')
-
-sample_outputs = model.generate(
-    input_ids,
-    do_sample=True,
-    max_length=100,
-    top_p=0.95,
-    top_k=50,
-    pad_token_id=model.config.eos_token_id
-)
-
-generated_text = tokenizer.decode(sample_outputs[0], skip_special_tokens=True)
-
-print(generated_text.encode('utf-8').decode())
+RUN npm i venom-bot child-process
+RUN pip install torch
+# Define el comando predeterminado a ejecutar cuando se inicie el contenedor
+CMD ["node", "index.js"]
