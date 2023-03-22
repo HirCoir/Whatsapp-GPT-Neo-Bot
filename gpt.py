@@ -1,22 +1,8 @@
-#sistema operativo base
-FROM debian:11
+from transformers import pipeline
 
-# Actualiza el sistema operativo
-RUN apt-get update
-# Instala las dependencias necesarias para la ejecución de GPT-Neo
-RUN apt-get install -y curl sudo python3 python3-pip git chromium
-RUN curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-RUN apt install -y nodejs
-# Copia el script de Python a la imagen Docker
-WORKDIR /app
-COPY gpt.py ./
-COPY index.js ./
+generator = pipeline('text-generation', model='EleutherAI/gpt-neo-1.3B')
+prompt = "Código php para extraer datos de una base de datos MySQL llamada datos donde la contraseña es pass123, el usuario es user123 y el host es 127.0.0.1, quiero que extraiga Username y Nivel"
 
-# Descarga el modelo de GPT-Neo desde Python y copia los archivos a la imagen Docker
-RUN pip3 install transformers
-# Define el directorio de trabajo
+generated_code = generator(prompt, max_length=900, do_sample=True, temperature=0.7)[0]['generated_text']
 
-RUN npm i venom-bot child-process
-RUN pip install torch
-# Define el comando predeterminado a ejecutar cuando se inicie el contenedor
-CMD ["node", "index.js"]
+print(generated_code)
